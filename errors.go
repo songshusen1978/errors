@@ -97,6 +97,12 @@ import (
 	"io"
 )
 
+var StackOutputEnabled bool
+
+func SetStackOutputEnabled(enabled bool) {
+	StackOutputEnabled = enabled
+}
+
 // New returns an error with the supplied message.
 // New also records the stack trace at the point it was called.
 func New(message string) error {
@@ -127,7 +133,7 @@ func (f *fundamental) Error() string { return f.msg }
 func (f *fundamental) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') {
+		if StackOutputEnabled && s.Flag('+') {
 			io.WriteString(s, f.msg)
 			f.stack.Format(s, verb)
 			return
@@ -165,7 +171,7 @@ func (w *withStack) Unwrap() error { return w.error }
 func (w *withStack) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') {
+		if StackOutputEnabled && s.Flag('+') {
 			fmt.Fprintf(s, "%+v", w.Cause())
 			w.stack.Format(s, verb)
 			return
@@ -250,7 +256,7 @@ func (w *withMessage) Unwrap() error { return w.cause }
 func (w *withMessage) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') {
+		if StackOutputEnabled && s.Flag('+') {
 			fmt.Fprintf(s, "%+v\n", w.Cause())
 			io.WriteString(s, w.msg)
 			return
